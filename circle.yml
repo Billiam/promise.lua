@@ -8,6 +8,6 @@ dependencies:
 test:
   override:
     - mkdir $CIRCLE_TEST_REPORTS/busted
-    - busted -c --output=junit spec > $CIRCLE_TEST_REPORTS/busted/promise.xml
+    - busted -c --output=TAP spec
   post:
     - luacov-coveralls -c spec/.luacov

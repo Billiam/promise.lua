@@ -49,20 +49,20 @@ end
 
 Helper.test_rejected = function(it, reason, test)
   it("already-rejected", function(done)
-    test(Helper.rejected(value), done)
+    test(Helper.rejected(reason), done)
   end)
 
   it("immediately-rejected", function(done)
     local p = Promise.new()
     test(p, done)
-    p:reject(value)
+    p:reject(reason)
   end)
 
   it("eventually-rejected", function(done)
     local p = Promise.new()
     test(p, done)
     Helper.timeout(0.05, function()
-      p:reject(value)
+      p:reject(reason)
     end)
   end)
 end
