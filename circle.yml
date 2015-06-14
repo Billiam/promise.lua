@@ -1,0 +1,13 @@
+dependencies:
+  pre:
+    - sudo apt-get install luajit
+    - sudo apt-get install luarocks
+    - sudo luarocks install luasec
+    - sudo luarocks install busted v1.1.1-2
+    - sudo luarocks install luacov-coveralls --server=http://rocks.moonscript.org/dev
+test:
+  override:
+    - mkdir $CIRCLE_TEST_REPORTS/busted
+    - busted --randomize -c --output=junit spec > $CIRCLE_TEST_REPORTS/busted/promise.xml
+  post:
+    - luacov-coveralls -c spec/.luacov
