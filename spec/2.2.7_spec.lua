@@ -51,8 +51,6 @@ describe("2.2.7: `next` must return a promise: `promise2 = promise1:next(onFulfi
         Helper.test_fulfilled(it, dummy, function(promise1, done)
           async()
 
-          settimeout(0.1)
-
           local promise2 = promise1:next(function()
             error(expectedReason)
           end)
@@ -112,6 +110,8 @@ describe("2.2.7.4: If `onRejected` is not a function and `promise1` is rejected,
   local function testNonFunction(nonFunction, stringRepresentation)
     describe("`onRejected` is " .. stringRepresentation, function()
       Helper.test_rejected(it, sentinel, function (promise1, done)
+        async()
+
         local promise2 = promise1:next(nil, nonFunction)
 
         promise2:next(nil, function(reason)
