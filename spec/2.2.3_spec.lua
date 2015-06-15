@@ -118,7 +118,7 @@ describe("2.2.2: If `onRejected` is a function,", function()
       end)
     end)
 
-    it("when multiple `then` calls are made, spaced apart in time", function(done)
+    it("when multiple `next` calls are made, spaced apart in time", function(done)
       async()
 
       local p = Promise.new()

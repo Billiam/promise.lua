@@ -21,7 +21,7 @@ local reasons = {
   ["a table"] = function()
     return {}
   end,
-  ["an always-pending thenable"] = function()
+  ["an always-pending nextable"] = function()
     return { next = function() end }
   end,
   ["a fulfilled promise"] = function()
