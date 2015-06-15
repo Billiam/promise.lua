@@ -12,6 +12,21 @@ local State = {
 local passthrough = function(x) return x end
 local errorthrough = function(x) error(x) end
 
+local function callable_table(callback)
+  local mt = getmetatable(callback)
+  return type(mt) == 'table' and type(mt.__call) == 'function'
+end
+
+local is_nextable = function(value)
+  local t = type(value)
+
+  if t == 'function' then return true end
+  if t ~= 'table' then return false end
+
+  return type(value.next) == 'function'
+    or callable_table(value)
+end
+
 local Promise = {
   is_promise = true,
   state = State.PENDING
@@ -170,8 +185,8 @@ function Promise:next(on_fulfilled, on_rejected)
   local promise = Promise.new()
 
   table.insert(self.cache, {
-    fulfill = on_fulfilled,
-    reject = on_rejected,
+    fulfill = is_nextable(on_fulfilled) and on_fulfilled or nil,
+    reject = is_nextable(on_rejected) and on_rejected or nil,
     promise = promise
   })
 
@@ -241,7 +256,7 @@ function Promise.race(...)
     fulfill(promise, value)
   end
 
-  for i,p in ipairs(promises) do
+  for _,p in ipairs(promises) do
     p:next(success)
   end
 
