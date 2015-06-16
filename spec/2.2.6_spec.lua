@@ -1,4 +1,4 @@
-local Helper = require('spec.spec_helper')
+local Helper = require('spec.helper.helper')
 local dummy = { dummy = 'dummy' }
 local other = { other = 'other' }
 

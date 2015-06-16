@@ -1,36 +1,10 @@
-local Helper = require('spec.spec_helper')
+local Helper = require('spec.helper.helper')
 local Promise = require('promise')
+local reasons = require('spec.helper.reasons')
 
 local dummy = { dummy = 'dummy' } -- we fulfill or reject with this when we don't intend to test against it
 local sentinel = { sentinel = 'sentinel' } -- a sentinel fulfillment value to test for with strict equality
 local other = { other = 'other' } -- a value we don't want to be strict equal to
-
-local reasons = {
-  ["`nil`"] = function()
-    return nil
-  end,
-  ["`false`"] = function()
-    return false
-  end,
-  ["`0`"] = function()
-    return 0
-  end,
-  ["an error"] = function()
-    error()
-  end,
-  ["a table"] = function()
-    return {}
-  end,
-  ["an always-pending nextable"] = function()
-    return { next = function() end }
-  end,
-  ["a fulfilled promise"] = function()
-    return Helper.resolved(dummy)
-  end,
-  ["a rejected promise"] = function()
-    return Helper.rejected(dummy)
-  end,
-}
 
 describe("2.2.7: `next` must return a promise: `promise2 = promise1:next(onFulfilled, onRejected)`", function()
   it("is a promise", function()

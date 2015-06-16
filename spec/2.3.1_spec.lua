@@ -1,4 +1,4 @@
-local Helper = require('spec.spec_helper')
+local Helper = require('spec.helper.helper')
 
 local dummy = { dummy = 'dummy' } -- we fulfill or reject with this when we don't intend to test against it
 

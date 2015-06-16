@@ -1,4 +1,4 @@
-local Helper = require('spec.spec_helper')
+local Helper = require('spec.helper.helper')
 local dummy = { dummy = 'dummy' }
 
 describe("2.2.1: Both `onFulfilled` and `onRejected` are optional arguments.", function()

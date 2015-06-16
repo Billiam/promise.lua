@@ -1,4 +1,4 @@
-local Helper = require('spec.spec_helper')
+local Helper = require('spec.helper.helper')
 local Promise = require('promise')
 
 local dummy = { dummy = 'dummy' } -- we fulfill or reject with this when we don't intend to test against it
@@ -89,6 +89,8 @@ describe("2.3.2: If `x` is a promise, adopt its state", function()
       end
 
       testPromiseResolution(it, xFactory, function(promise, done)
+        async()
+
         promise:next(nil, function(reason)
           assert.are_equals(reason, sentinel)
           done()
@@ -108,6 +110,8 @@ describe("2.3.2: If `x` is a promise, adopt its state", function()
       end
 
       testPromiseResolution(it, xFactory, function(promise, done)
+        async()
+
         promise:next(nil, function(reason)
           assert.are_equals(reason, sentinel)
           done()
