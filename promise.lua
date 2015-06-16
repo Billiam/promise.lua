@@ -17,6 +17,11 @@ local function callable_table(callback)
   return type(mt) == 'table' and type(mt.__call) == 'function'
 end
 
+local function is_callable(value)
+  local t = type(value)
+  return t == 'function' or (t == 'table' or callable_table(value))
+end
+
 local is_nextable = function(value)
   local t = type(value)
 
@@ -91,8 +96,9 @@ resolve = function(promise, x)
     return
   end
 
-  -- if x is not a table, fullfill promise with it
-  if type(x) ~= 'table' or type(x.next) ~= 'function' then
+  local x_type = type(x)
+
+  if x_type ~= 'table' then
     fulfill(promise, x)
     return
   end
@@ -101,45 +107,50 @@ resolve = function(promise, x)
   if x.is_promise then
     -- if x is pending, use it to resolve this promise
     if x.state == State.PENDING then
-      x:next(
-        function(value)
-          resolve(promise, value)
-        end,
-        function(reason)
-          reject(promise, reason)
+      x:next(function(value)
+        resolve(promise, value)
+      end,
+      function(reason)
+        reject(promise, reason)
+      end)
+
+      return
+    end
+
+    -- if x is already resolved, then take on its state and value
+    transition(promise, x.state, x.value)
+    return
+  end
+
+  local called = false
+  -- 2.3.3.1. Catches errors thrown by __index metatable
+  local success, reason = pcall(function()
+    if is_callable(x.next) then
+      x:next(function(y)
+        if not called then
+          resolve(promise, y)
+          called = true
         end
-      )
+      end, function(r)
+        if not called then
+          reject(promise, r)
+          called = true
+        end
+      end)
     else
-      -- if x is already resolved, then take on its state and value
-      transition(promise, x.state, x.value)
+      fulfill(promise, x)
+    end
+  end)
+
+  if not success then
+    if not called then
+      reject(promise, reason)
     end
 
     return
   end
 
-  -- if x a non-implementation promise, aka then-able (next-able)
-  local called = false
-  -- Try to resolve promise with x.next
-  local success, reason = pcall(
-    x.next,
-    x,
-    function(y)
-      if not called then
-        called = true
-        resolve(promise, y)
-      end
-    end,
-    function(r)
-      if not called then
-        called = true
-        reject(promise, r)
-      end
-    end
-  )
-
-  if not success then
-    reject(promise, reason)
-  end
+  fulfill(promise, x)
 end
 
 run = function(promise)
