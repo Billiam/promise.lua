@@ -19,18 +19,10 @@ end
 
 local function is_callable(value)
   local t = type(value)
-  return t == 'function' or (t == 'table' or callable_table(value))
+  return t == 'function' or (t == 'table' and callable_table(value))
 end
 
-local is_nextable = function(value)
-  local t = type(value)
-
-  if t == 'function' then return true end
-  if t ~= 'table' then return false end
-
-  return type(value.next) == 'function'
-    or callable_table(value)
-end
+local transition, resolve, run
 
 local Promise = {
   is_promise = true,
@@ -38,34 +30,20 @@ local Promise = {
 }
 Promise.mt = { __index = Promise }
 
-local transition, resolve, run
-
-function Promise.new(callback)
-  local instance = {
-    cache = {}
-  }
-  setmetatable(instance, Promise.mt)
-
-  if callback then
-    callback(
-      function(value)
-        resolve(instance, value)
-      end,
-      function(reason)
-        transition(instance, State.REJECTED, reason)
-      end
-    )
-  end
-
-  return instance
-end
-
 local do_async = function(callback)
   if Promise.async then
     Promise.async(callback)
   else
     table.insert(queue, callback)
   end
+end
+
+local reject = function(promise, reason)
+  transition(promise, State.REJECTED, reason)
+end
+
+local fulfill = function(promise, value)
+  transition(promise, State.FULFILLED, value)
 end
 
 transition = function(promise, state, value)
@@ -82,12 +60,18 @@ transition = function(promise, state, value)
   run(promise)
 end
 
-local reject = function(promise, reason)
-  transition(promise, State.REJECTED, reason)
-end
+function Promise:next(on_fulfilled, on_rejected)
+  local promise = Promise.new()
 
-local fulfill = function(promise, value)
-  transition(promise, State.FULFILLED, value)
+  table.insert(self.queue, {
+    fulfill = is_callable(on_fulfilled) and on_fulfilled or nil,
+    reject = is_callable(on_rejected) and on_rejected or nil,
+    promise = promise
+  })
+
+  run(self)
+
+  return promise
 end
 
 resolve = function(promise, x)
@@ -95,29 +79,29 @@ resolve = function(promise, x)
     reject(promise, 'TypeError: cannot resolve a promise with itself')
     return
   end
-
+  
   local x_type = type(x)
 
   if x_type ~= 'table' then
     fulfill(promise, x)
     return
   end
-
+  
   -- x is a promise in the current implementation
-  if x.is_promise then
-    -- if x is pending, use it to resolve this promise
+  if x.is_promise then 
+    -- 2.3.2.1 if x is pending, resolve or reject this promise after completion
     if x.state == State.PENDING then
-      x:next(function(value)
-        resolve(promise, value)
-      end,
-      function(reason)
-        reject(promise, reason)
-      end)
-
+      x:next(
+        function(value)
+          resolve(promise, value)
+        end,
+        function(reason)
+          reject(promise, reason)
+        end
+      )
       return
     end
-
-    -- if x is already resolved, then take on its state and value
+    -- if x is not pending, transition promise to x's state and value
     transition(promise, x.state, x.value)
     return
   end
@@ -125,18 +109,23 @@ resolve = function(promise, x)
   local called = false
   -- 2.3.3.1. Catches errors thrown by __index metatable
   local success, reason = pcall(function()
-    if is_callable(x.next) then
-      x:next(function(y)
-        if not called then
-          resolve(promise, y)
-          called = true
+    local next = x.next
+    if is_callable(next) then
+      next(
+        x,
+        function(y) 
+          if not called then
+            resolve(promise, y)
+            called = true
+          end
+        end,
+        function(r)
+          if not called then
+            reject(promise, r)
+            called = true
+          end
         end
-      end, function(r)
-        if not called then
-          reject(promise, r)
-          called = true
-        end
-      end)
+      )
     else
       fulfill(promise, x)
     end
@@ -146,11 +135,7 @@ resolve = function(promise, x)
     if not called then
       reject(promise, reason)
     end
-
-    return
   end
-
-  fulfill(promise, x)
 end
 
 run = function(promise)
@@ -158,7 +143,7 @@ run = function(promise)
 
   do_async(function()
     while true do
-      local obj = table.remove(promise.cache, 1)
+      local obj = table.remove(promise.queue, 1)
       if not obj then
         break
       end
@@ -167,7 +152,6 @@ run = function(promise)
         local success = obj.fulfill or passthrough
         local failure = obj.reject or errorthrough
         local callback = promise.state == State.FULFILLED and success or failure
-
         return callback(promise.value)
       end)
 
@@ -178,6 +162,26 @@ run = function(promise)
       end
     end
   end)
+end
+
+function Promise.new(callback)
+  local instance = {
+    queue = {}
+  }
+  setmetatable(instance, Promise.mt)
+
+  if callback then
+    callback(
+      function(value)
+        resolve(instance, value)
+      end,
+      function(reason)
+        reject(instance, reason)
+      end
+    )
+  end
+
+  return instance
 end
 
 function Promise:catch(callback)
@@ -192,18 +196,17 @@ function Promise:reject(reason)
   reject(self, reason)
 end
 
-function Promise:next(on_fulfilled, on_rejected)
-  local promise = Promise.new()
-
-  table.insert(self.cache, {
-    fulfill = is_nextable(on_fulfilled) and on_fulfilled or nil,
-    reject = is_nextable(on_rejected) and on_rejected or nil,
-    promise = promise
-  })
-
-  run(self)
-
-  return promise
+function Promise.deferred()
+  local resolve, reject
+  
+  return {
+    promise = Promise.new(function(res, rej)
+      resolve = res
+      reject = rej
+    end),
+    resolve = resolve,
+    reject = reject
+  }
 end
 
 function Promise.update()
