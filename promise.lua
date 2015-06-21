@@ -225,7 +225,7 @@ end
 function Promise.all(...)
   local promises = {...}
   local results = {}
-  local state = State.PENDING
+  local state = State.FULFILLED
   local remaining = #promises
 
   local promise = Promise.new()
@@ -234,7 +234,6 @@ function Promise.all(...)
     if remaining > 0 then
       return
     end
-
     transition(promise, state, results)
   end
 
@@ -253,6 +252,8 @@ function Promise.all(...)
       end
     )
   end
+
+  check_finished()
 
   return promise
 end
