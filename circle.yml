@@ -5,7 +5,7 @@ dependencies:
     - sudo apt-get install luajit
     - sudo apt-get install luarocks
     - sudo luarocks install luasec OPENSSL_LIBDIR=/usr/lib/x86_64-linux-gnu/
-    - cd .tmp/busted && sudo luarocks make && cd -
+    - cd .tmp && sudo luarocks make && cd -
     - sudo luarocks install luacov-coveralls --server=http://rocks.moonscript.org/dev
 test:
   override:
