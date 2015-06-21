@@ -250,7 +250,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
         end
       end)
   
-      pending("`y` is a nextable for a nextable", function()
+      describe("`y` is a nextable for a nextable", function()
         for outerStringRepresentation, outerNextableFactory in pairs(nextables.fulfilled) do
           for innerStringRepresentation,  innerNextableFactory in pairs(nextables.fulfilled) do 
             local stringRepresentation = outerStringRepresentation .. " for " .. innerStringRepresentation
@@ -563,7 +563,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
         end)
       end)
     
-      describe("calling `resolvePromise` with an asynchronously-rejected promise, then calling it again, both times synchronously #broke", function()
+      describe("calling `resolvePromise` with an asynchronously-rejected promise, then calling it again, both times synchronously", function()
         local function xFactory()
           local p = Promise.new()
           
@@ -913,7 +913,7 @@ describe("2.3.3: Otherwise, if `x` is an object or function,", function()
     end)
   end)
 
-  describe("2.3.3.4: If `next` is not a function, fulfill promise with `x` #busted", function()
+  describe("2.3.3.4: If `next` is not a function, fulfill promise with `x`", function()
     local function testFulfillViaNonFunction(next, stringRepresentation)  
       describe("`next` is " .. stringRepresentation, function()
         local x = nil

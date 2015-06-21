@@ -15,16 +15,16 @@ end
 
 --generate a pre-resolved promise
 Helper.resolved = function(value)
-  local p = Promise.new()
-  p:resolve(value)
-  return p
+  return Promise.new(function(res)
+    res(value)
+  end)
 end
 
 --generate a pre-rejected promise
 Helper.rejected = function(reason)
-  local p = Promise.new()
-  p:reject(reason)
-  return p
+  return Promise.new(function(res, rej)
+    rej(reason)
+  end)
 end
 
 Helper.test_fulfilled = function(it, value, test)

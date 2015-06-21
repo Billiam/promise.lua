@@ -3,7 +3,6 @@ local Helper = require('spec.helper.helper')
 local dummy = { dummy = 'dummy' } -- we fulfill or reject with this when we don't intend to test against it
 
 describe("2.3.4: If `x` is not an object or function, fulfill `promise` with `x`", function()
-
   local function testValue(expectedValue, stringRepresentation)
     describe("The value is " .. stringRepresentation, function()
       Helper.test_fulfilled(it, dummy, function(promise1, done)

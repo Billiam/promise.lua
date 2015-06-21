@@ -17,7 +17,7 @@ describe("2.3.1: If `promise` and `x` refer to the same object, reject `promise`
       done()
     end)
   end)
---
+
   it("via return from a rejected promise", function(done)
     async()
 
