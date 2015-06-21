@@ -196,19 +196,6 @@ function Promise:reject(reason)
   reject(self, reason)
 end
 
-function Promise.deferred()
-  local resolve, reject
-  
-  return {
-    promise = Promise.new(function(res, rej)
-      resolve = res
-      reject = rej
-    end),
-    resolve = resolve,
-    reject = reject
-  }
-end
-
 function Promise.update()
   while true do
     local async = table.remove(queue, 1)
