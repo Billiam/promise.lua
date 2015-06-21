@@ -1,13 +1,15 @@
 dependencies:
   pre:
+    - mkdir -p .tmp
+    - git clone -b bugfix/duplicate-nesting https://github.com/Billiam/busted.git .tmp
     - sudo apt-get install luajit
     - sudo apt-get install luarocks
     - sudo luarocks install luasec OPENSSL_LIBDIR=/usr/lib/x86_64-linux-gnu/
-    - sudo luarocks install busted 1.11.1-2
+    - cd .tmp/busted && sudo luarocks make && cd -
     - sudo luarocks install luacov-coveralls --server=http://rocks.moonscript.org/dev
 test:
   override:
     - mkdir $CIRCLE_TEST_REPORTS/busted
-    - busted -c --output=TAP spec
+    - busted -c -o junit spec > $CIRCLE_TEST_REPORTS/busted/promise.xml
   post:
     - luacov-coveralls -c spec/.luacov
