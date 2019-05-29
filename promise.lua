@@ -142,9 +142,12 @@ run = function(promise)
   if promise.state == State.PENDING then return end
 
   do_async(function()
-    for i, obj in ipairs(promise.queue) do
-      promise.queue[i] = nil
-
+    -- drain promise.queue while allowing pushes from within callbacks
+    local q = promise.queue
+    local i = 0
+    while i < #q do
+      i = i + 1
+      obj = q[i]
       local success, result = pcall(function()
         local success = obj.fulfill or passthrough
         local failure = obj.reject or errorthrough
@@ -157,6 +160,9 @@ run = function(promise)
       else
         resolve(obj.promise, result)
       end
+    end
+    for j = 1, i do
+      q[j] = nil
     end
   end)
 end
