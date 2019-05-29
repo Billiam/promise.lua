@@ -142,11 +142,8 @@ run = function(promise)
   if promise.state == State.PENDING then return end
 
   do_async(function()
-    while true do
-      local obj = table.remove(promise.queue, 1)
-      if not obj then
-        break
-      end
+    for i, obj in ipairs(promise.queue) do
+      promise.queue[i] = nil
 
       local success, result = pcall(function()
         local success = obj.fulfill or passthrough
