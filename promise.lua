@@ -147,7 +147,7 @@ run = function(promise)
     local i = 0
     while i < #q do
       i = i + 1
-      obj = q[i]
+      local obj = q[i]
       local success, result = pcall(function()
         local success = obj.fulfill or passthrough
         local failure = obj.reject or errorthrough
